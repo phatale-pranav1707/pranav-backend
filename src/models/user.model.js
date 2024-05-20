@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema({
         
      },
 
-     coverimage :{
+     coverImage :{
         type :String,
 
      },
@@ -63,11 +63,12 @@ const userSchema = new mongoose.Schema({
 // means hr time jevha userdata save karaychi vel ali tevha password hash kru nye
 // ashya veli if(!this.isModified("password")) return next(); hi condition lavavi
 // this.isModified("password") sangte ki password change kela ahe ki nahi
+//this. use karaych ahe mhnun async function use kele ahe , call back use kela nahi
 
 userSchema.pre("save", async function (next){
      if(!this.isModified("password")) return next();
 
-     this.password=bcrypt.hash(this.password,10)
+     this.password=await bcrypt.hash(this.password,10)
      next()
 })
 
@@ -76,6 +77,37 @@ userSchema.methods.isPasswordcorrect= async function (password){
 }
 
 // bcrypt paasword chek karnyasathi pn use kele jate
-// new password and encrypted adhicha password compare krun sangte
+
+// new password and encrypted adhicha password compare krun 
+
+
+userSchema.methods.generateAccessToken=function(){
+   return jwt.sign(
+        {
+            _id : this._id,  //--> he mongoDB madhe user chi id _id ne save aste
+            email : this.email,
+            username : this.username,
+            fullname : this.fullname
+        },
+        process.env.ACCESS_TOKEN_SECRETE,
+        {
+            expiresIn : process.env.ACCESS_TOKEN_EXPIRY
+        }
+    )
+}
+userSchema.methods.generateRefreshToken=function(){
+    return jwt.sign(
+        {
+            _id : this._id,  //--> he mongoDB madhe user chi id _id ne save aste
+            email : this.email,
+            username : this.username,
+            fullname : this.fullname
+        },
+        process.env.REFRESH_TOKEN_SECRETE,
+        {
+            expiresIn : process.env.REFRESH_TOKEN_EXPIRY
+        }
+    )
+}
 
 export const User = mongoose.model("User", userSchema)

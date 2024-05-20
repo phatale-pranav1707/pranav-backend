@@ -18,6 +18,25 @@ app.use(express.static("public")) // kahi vela images , file pn db madhe stores 
 
 app.use(cookieParser())
 
+app.get('/', (req, res) => {
+    res.send('Hello Express!');
+  });
+
+// routes import 
+
+// import { userRouter} from "./routes/user.routes.js"
+import userRouter from "./routes/user.routes.js";
+
+// routes declaration
+
+app.use("/api/v1/users", userRouter)  // /users ya end point vr userRouter kaam krel
+
+// ata users/ nantr je pn kahi karaych asel tr userRouter krel
+// /users vr alyavr sarv controll aapn userRouter la dila ahe
+
+// -> http://localhost:8000/api/v1/users/register
+// -> http://localhost:8000/api/v1/users/login
+
 
 
 
