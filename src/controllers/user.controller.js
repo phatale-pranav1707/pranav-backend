@@ -282,6 +282,100 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
 
 })
 
+const changeUserPassword = asyncHandler(async(req,res)=>{
+    const {oldPassword, newPassword} = req.body
+
+    if (!oldPassword || !newPassword) {
+        throw new ApiError(400, "Old password and new password are required");
+    }
+
+     const user= await User.findById(req.user?._id);
 
 
-export {registerUser,loginUser, logoutUser, refreshAccessToken}
+
+    const ispasswordCorrect= await user?.isPasswordcorrect(oldPassword); // model madhe ahe
+    if(ispasswordCorrect == null) {
+        console.log("hii")
+    }
+
+    if(!ispasswordCorrect){
+        throw new ApiError(401, "invalid old password");
+    }
+
+    user.password=newPassword;
+    await user.save({validateBeforeSave: false});
+
+    return res.status(200).
+    json(new ApiResponse(200, {}, "passowrd changed successfully"))
+    
+
+
+
+
+})
+
+const getCurrentUser = asyncHandler(async(req,res)=>{
+    // const user = await User.findById(req.user?._id);
+
+    return res.status(200).json(200, req.user);
+})
+
+const UpdateAccountDeatails = asyncHandler(async(req,res)=>{
+    const {fullName, email}= req.body;
+
+    if(!fullName && !email){
+        throw new ApiError(401, "All fields are required")
+    }
+
+    const user= await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set :{
+                fullname : fullName,
+                email : email 
+            }
+        },
+
+        {new : true}
+    ).select("-password")
+
+    return res.status(200).json(new ApiResponse(200, user,"All details are updated"))
+
+    
+
+
+
+})
+
+const UpdateUserAvtar = asyncHandler(async(req,res)=>{
+    const avtarLocalPath = await req.file?.path;
+
+    if(!avtarLocalPath){
+        throw new ApiError(400, "avtar file is missed")
+    }
+
+    const avtar = await uploadFileOnCloudinary(avtarLocalPath);
+
+    if(!avtar.url){
+        throw new ApiError(400, "avtar not uploaded on cloudinary")
+    }
+
+    const user=await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set :{
+                 avtar : avtar?.url
+            }
+        }
+    ).select("-password")
+
+    return res.status(200).json(new ApiResponse(200, user, "Avtar updated successfully"))
+
+
+})
+
+
+
+
+
+export {registerUser,loginUser, logoutUser, refreshAccessToken, changeUserPassword, getCurrentUser, UpdateAccountDeatails, UpdateUserAvtar}

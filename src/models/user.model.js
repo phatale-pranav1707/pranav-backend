@@ -65,12 +65,14 @@ const userSchema = new mongoose.Schema({
 // this.isModified("password") sangte ki password change kela ahe ki nahi
 //this. use karaych ahe mhnun async function use kele ahe , call back use kela nahi
 
-userSchema.pre("save", async function (next){
-     if(!this.isModified("password")) return next();
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) return next();
 
-     this.password=await bcrypt.hash(this.password,10)
-     next()
-})
+    console.log("Hashing password for user:", this.username);
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+});
+
 
 userSchema.methods.isPasswordcorrect= async function (password){
     return await bcrypt.compare(password,this.password)
